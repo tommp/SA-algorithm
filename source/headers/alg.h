@@ -24,16 +24,18 @@
 
 namespace algvars{
 	/*Necessary for the algorithm*/
-	const float goalvalue = 1.0;
-	const float temp = 1.0;
-	const float dtemp = 0.0001;
-	const int iterationdelay = 10; /*Microseconds*/
-	const int iterations = 20000;
-	const int algiterations = 10;
-	const int num_neighbours = 300;
-	const float templimit = 0.05;
+	const float goalvalue = 1.0; /*If 1 searches for optimal value*/
+	const float temp = 1.0; /*Initial temperature*/
+	const float dtemp = 0.0001; /*Temp reduction in each iteration*/
+	const int iterationdelay = 10; /*Microseconds, min delay between prints*/
+	const int iterations = 20000; /*Iterations of the main for loop*/
+	const int algiterations = 10; /*Iterations of the algorithm per for loop looping*/
+	const int num_neighbours = 300; /*Number of neighbours generated for each loop in the algorithm*/
+	const float templimit = 0.05; /*When temp drops below this value, improvement is enforced, set to negative value to disable*/
 
 	/*For specific tasks*/
+
+	/*Eggcarton puzzle*/
 	const int m = 8;
 	const int n = 8;
 	const int k = 2;
