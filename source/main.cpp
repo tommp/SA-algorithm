@@ -1,12 +1,8 @@
 #include "./headers/main.h"
 
 int main(int argc, char** argv){
+
 	/*Initializes SDL for graphical display*/
-
-	if(TTF_Init() != 0){
-
-	}
-
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
 		SDLerrorLogger("SDL initialization");
 		std::cout<<"Failed to initialize SDL, see errorlog for details."<<std::endl;
@@ -24,6 +20,7 @@ int main(int argc, char** argv){
 		return 1;
 	}
 
+	/*Initializes a window to render data in*/
 	SDL_Window *datawin = SDL_CreateWindow("SA-DATA", 0, algvars::windowheight+24, algvars::windowlength, 100, 0);
 	if (win == nullptr){
 		SDLerrorLogger("SDL_CreateWindow");
@@ -39,7 +36,7 @@ int main(int argc, char** argv){
 		return 1;
 	}
 
-	/*Initializes the renderer to draw in*/
+	/*Initializes the renderer to draw data in*/
 	SDL_Renderer *dataren = SDL_CreateRenderer(datawin, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (ren == nullptr){
 		SDLerrorLogger("SDL_CreateRenderer");
@@ -57,13 +54,25 @@ int main(int argc, char** argv){
 	EggCarton carton(algvars::m, algvars::n, algvars::k);
 	EggCartonPuzzle puzzle(algvars::temp, algvars::dtemp, algvars::goalvalue, carton);
 
+	/*Renders and prints the initial windows*/
+	puzzle.getstate().print(ren);
+	SDL_SetRenderDrawColor(dataren, 
+						algvars::emptycolor[0], 
+						algvars::emptycolor[1], 
+						algvars::emptycolor[2], 255);
+	SDL_RenderClear(dataren);
+	SDL_RenderPresent(dataren);
+	SDL_RenderPresent(ren);
+
 	bool algdone = false;
 	for(int i = 0; i < algvars::iterations; i++){
+
+		/*Run the algorithm for algiterations iterations 
+		with num_neighbours neighbours and check if a satisfying solution was found*/
 		if(puzzle.simulated_annealing(algvars::algiterations, algvars::num_neighbours)){
-			if(algvars::allowillegal || ((puzzle.getstate().numeggs() - puzzle.getscore()) == 0)){
-				break;
-			}
+			algdone = true;
 		}
+
 		/*Print puzzle board*/
 		puzzle.getstate().print(ren);
 
@@ -86,45 +95,23 @@ int main(int argc, char** argv){
 		/*Render both windows*/
 		SDL_RenderPresent(dataren);
 		SDL_RenderPresent(ren);
+
+		/*Quit if a key is typed*/
 		pollevent(algdone);
 		if(algdone){
 			break;
 		}
+
 		usleep(algvars::iterationdelay);
 	}
-
-	SDL_SetRenderDrawColor(dataren, 
-					algvars::emptycolor[0], 
-					algvars::emptycolor[1], 
-					algvars::emptycolor[2], 255);
-	SDL_RenderClear(dataren);
-
-	stringRGBA(dataren, 5, 5, score.c_str(),0,0,0,0);
-	convert = std::to_string(puzzle.getscore());
-	stringRGBA(dataren,115,5, convert.c_str(),0,0,0,0);
-
-	stringRGBA(dataren, 5, 15, temperature.c_str(),0,0,0,0);
-	convert = std::to_string(puzzle.gettemp());
-	stringRGBA(dataren, 115, 15, convert.c_str(),0,0,0,0);
 	
+	/*Print result to terminal*/
 	std::cout<<"\n------------------------------------------------------------"  <<std::endl;
 	std::cout<<"Solution found!"<<std::endl;
 	std::cout<<"Final score:"<< puzzle.getscore() <<std::endl;
-	if(puzzle.getstate().numeggs() - puzzle.getscore() > 0){
-		convert = "Final state is illegal!";
-		std::cout<< convert <<std::endl;
-		stringRGBA(dataren,5,25, convert.c_str(),0,0,0,0);
-		SDL_RenderPresent(dataren);
-		std::cout<<"Illegal eggs:"<< puzzle.getstate().numeggs() - puzzle.getscore()  <<std::endl;
-	}
-	else{
-		convert = "Final state is legal!";
-		std::cout<< convert  <<std::endl;
-		stringRGBA(dataren,5,25, convert.c_str(),0,0,0,0);
-		SDL_RenderPresent(dataren);
-	}
 	std::cout<<"------------------------------------------------------------\n"  <<std::endl;
 	
+	/*Wait for a key to be pressed before quitting*/
 	waitForEvent();
 }
 
